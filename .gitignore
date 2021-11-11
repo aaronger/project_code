@@ -3,3 +3,4 @@
 .Rdata
 .httr-oauth
 .DS_Store
+data/offline_signals/honest_as_of/

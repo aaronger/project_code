@@ -1,0 +1,2 @@
+
+# some basic covidcast queries
