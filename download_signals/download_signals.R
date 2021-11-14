@@ -5,11 +5,11 @@ library(evalcast)
 library(here)
 
 # Parameters for determining which data (and how much) we need --------
-geo_type <- "hrr"
+geo_type <- "county"
 ntrain = 21
 ahead = 7:21
 lags = c(0, 7, 14)
-hotspot_lag = 7
+# hotspot_lag = 7
 end_forecast_date = '2021-03-31'
 named_function = function(x) lubridate::ymd("2021-05-18") # finalized as_of
 
@@ -58,14 +58,14 @@ signal_downloader <- function(df_list,
 }
 
 start_day_download <- function(forecast_date) {
-  return(as.Date(forecast_date) - max(ahead) - ntrain - max(lags) - hotspot_lag + 1)
+  return(as.Date(forecast_date) - max(ahead) - ntrain - max(lags) + 1)
 }
 # = forecast_date - 62
 
 # Download honest data ----------------------------------------------------
 
 
-signals_df = honest_as_of_signals
+signals_df = honest_as_of_signals[1:3,]
 offline_signal_dir = here("data", "offline_signals", "honest_as_of", geo_type)
 if (!dir.exists(offline_signal_dir)) dir.create(offline_signal_dir, recursive = TRUE)
   for (idx in 1:nrow(honest_as_of_signals)) {

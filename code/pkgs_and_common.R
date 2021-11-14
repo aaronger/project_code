@@ -138,11 +138,14 @@ offline_get_predictions_single_date <- function(
     }
   }
   forecast_date <- lubridate::ymd(forecast_date)
-  # add appropriate start_date or as_of by evaulating start_day_ar functions
+  # add appropriate start_date or as_of by evaulating start_day_ar functions;
+  # signal_listcols evaluates functions in column named "start_day" or "as_of"
   signals <- evalcast:::signal_listcols(signals, forecast_date)
-  # get corresponding df of signal values
+  # get corresponding list of dfs of signal values
   df_list <- signals %>% pmap(function(...) {
+    # note pmap operates on a df by applying .f to each row
     sig <- list(...)
+    # so that sig is a list of one row's entries
     download_signal_function(
       data_source = sig$data_source, 
       signal = sig$signal,

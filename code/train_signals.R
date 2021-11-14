@@ -27,8 +27,8 @@ if (!dir.exists(debug_dir)) {dir.create(debug_dir, recursive = TRUE)}
 
 for (idx in 1:nrow(signals_df)) {
   signals_ar = tibble::tibble( 
-    # a 1 or 2 row tibble for
-    # response only or response plus signal
+    # a 1 or 2 row tibble for response only or response plus signal;
+    # used to build names of RDS files to be loaded for each forecast_date
     data_source = unique(c(response_data_source, signals_df$data_source[idx])),
     signal = unique(c(response_signal, signals_df$signal[idx])),
     start_day = list(start_day_ar),
