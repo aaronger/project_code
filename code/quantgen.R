@@ -104,13 +104,12 @@ zero_impute_matx = function(matx, zero_impute) {
 #' signals available; but also saves predictions where we use the latest data
 #' per feature.
 quantgen_forecaster = function(
-  df_list, 
+  df_list, # list of training data dfs
   forecast_date, # only used to label output file
-  signals, 
-  incidence_period,
+  signals, # only used organizing lags/transforms - not data
   ahead, 
   geo_type,
-  n = 4 * ifelse(incidence_period == "day", 7, 1), # number of training obs
+  n, # number of training obs
   lags = 0,
   tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
   transform = NULL, inv_trans = NULL,
@@ -127,8 +126,9 @@ quantgen_forecaster = function(
   } else {
     n_core = 1
   }
-  # Check lags vector or list
+  # Check that lags are lags
   if (any(unlist(lags) < 0)) stop("All lags must be nonnegative.")
+  # Ensure that lags are applied to both response and signals
   if (!is.list(lags)) lags = rep(list(lags), nrow(signals))
   else if (length(lags) != nrow(signals)) {
     stop(paste(
@@ -158,7 +158,7 @@ quantgen_forecaster = function(
   dt = lapply(lags, "-")
   dt[[1]] = c(dt[[1]], ahead)
 
-  # Append shifts, and aggregate into wide format
+  # Aggregate lagged and unlagged response and signals into wide format
   df_wide = covidcast::aggregate_signals(df_list, dt = dt, format = "wide")
 
   # Separate non-leading values out into feature data frame
@@ -169,7 +169,7 @@ quantgen_forecaster = function(
   # featurize if we need to
   if (!is.null(featurize)) df_features = featurize(df_features)
 
-  # Identify params for quantgen training and prediction functions
+  # Specify params for quantgen training and prediction functions
   params = list(...)
   params$tau = tau
   if (!'lambda' %in% names(params)) params$lambda = 0
@@ -188,12 +188,10 @@ quantgen_forecaster = function(
   newx_list = make_newx(df_features)
 
   if (!is.null(resample)) {
-    newx_list$newx = resample_matx(newx_list$newx,
-                                           resample, newx=TRUE)
+    newx_list$newx = resample_matx(newx_list$newx, resample, newx = TRUE)
   }
   if (!is.null(zero_impute)) {
-    newx_list$newx = zero_impute_matx(newx_list$newx,
-                                           zero_impute)
+    newx_list$newx = zero_impute_matx(newx_list$newx, zero_impute)
   }
 
   if (verbose) message(sprintf('Quantgen forecaster running with %d cores', n_core))

@@ -8,26 +8,26 @@ cty_adj_raw <- read_tsv(
 
 census_ctys <- cty_adj_raw %>% select(county, fips) %>% distinct()
 
-anti_join(census_ctys, covidData::fips_codes, by = c("county" = "full_location_name")) %>% 
-  print(n=235)
+# anti_join(census_ctys, covidData::fips_codes, by = c("county" = "location_name_with_state")) %>% 
+#   print(n=235)
 
-anti_join(
-  census_ctys %>% filter(!grepl("PR|VI|AS|GU|MP", county)),
-  covidHubUtils::hub_locations,
-  by = c("county" = "full_location_name")
-) %>%
-left_join(covidHubUtils::hub_locations) %>%
-  select(-geo_type, -geo_value) %>% print(n=138)
+# anti_join(
+#   census_ctys %>% filter(!grepl("PR|VI|AS|GU|MP", county)),
+#   covidHubUtils::hub_locations,
+#   by = c("county" = "full_location_name")
+# ) %>%
+# left_join(covidHubUtils::hub_locations) %>%
+#   select(-geo_type, -geo_value) %>% print(n=138)
 
-anti_join(
-  census_ctys %>% filter(!grepl("PR|VI|AS|GU|MP", county)),
-  covidHubUtils::hub_locations) 
+# anti_join(
+#   census_ctys %>% filter(!grepl("PR|VI|AS|GU|MP", county)),
+#   covidHubUtils::hub_locations) 
 
-anti_join(covidHubUtils::hub_locations %>% filter(geo_type == "county"),
-          census_ctys, by = c("full_location_name" = "county")) %>% print(n=139)
+# anti_join(covidHubUtils::hub_locations %>% filter(geo_type == "county"),
+#           census_ctys, by = c("full_location_name" = "county")) %>% print(n=139)
 
-anti_join(covidHubUtils::hub_locations %>% filter(geo_type == "county"),
-          census_ctys)
+# anti_join(covidHubUtils::hub_locations %>% filter(geo_type == "county"),
+#           census_ctys)
 
 # details about changes: 
 # https://www.census.gov/programs-surveys/geography/technical-documentation/county-changes.2010.html
@@ -75,7 +75,7 @@ cty_matches <- tribble(
   "Shannon County, SD",            46113,      "Oglala Lakota County, SD", 46102,
 )
 
-cty_adj <- cty_adj_raw %>% mutate(
+cty_adj <- cty_adj %>% mutate(
   county = replace(county, county == "Wade Hampton Census Area, AK", "Kusilvak County, AK"),
   county = replace(county, county == "Shannon County, SD", "Oglala Lakota County, SD"),
   nghb_county = replace(nghb_county, nghb_county == "Wade Hampton Census Area, AK", "Kusilvak County, AK"),
@@ -86,6 +86,8 @@ cty_adj <- cty_adj_raw %>% mutate(
   nghb_fips = replace(nghb_fips, nghb_fips == "46113", "46102"),
 )
 
-library(igraph)
-g <- graph_from_data_frame(cty_adj %>% select(fips, nghb_fips))
-as_adjacency_matrix(g)
+write_csv(cty_adj, paste0(here(), "/project_data/county_adjacency_fixed.csv"))
+
+# library(igraph)
+# g <- graph_from_data_frame(cty_adj %>% select(fips, nghb_fips))
+# g_mat <- as_adjacency_matrix(g)

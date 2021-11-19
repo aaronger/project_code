@@ -160,7 +160,8 @@ offline_get_predictions_single_date <- function(
   }
   # pass forecast_date to forecaster for labelling its output file
   forecaster_args$forecast_date = forecast_date
-  # pass training df of signal values to forecaster
+  # pass training df of signal values to forecaster;
+  # will be wrangled by covidcast::agregate_signals
   forecaster_args$df_list <- df_list
   # get predictions
   out <- do.call(forecaster, forecaster_args)

@@ -44,8 +44,9 @@ for (idx in 1:nrow(signals_df)) {
       signals = signals_ar,
       offline_signal_dir = offline_signal_dir,
       forecaster_args = list(
+        # forecast_date and df_list(forecast_date) added to this list 
+        # by internal function offline_get_predictions_single_date
         signals = signals_ar,
-        incidence_period = incidence_period,
         ahead = ahead,
         geo_type = geo_type,
         tau = tau,
