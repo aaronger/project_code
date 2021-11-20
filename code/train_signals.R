@@ -2,6 +2,7 @@ source(here::here("code", "pkgs_and_common.R"))
 source(here::here("code", "quantgen.R"))
 
 
+
 lags = qr_lags
 forecast_dates <- qr_forecast_dates
 tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
@@ -31,6 +32,7 @@ for (idx in 1:nrow(signals_df)) {
     # used to build names of RDS files to be loaded for each forecast_date
     data_source = unique(c(response_data_source, signals_df$data_source[idx])),
     signal = unique(c(response_signal, signals_df$signal[idx])),
+    graph = signals_df$graph[idx],
     start_day = list(start_day_ar),
     geo_values = list(signals_df$geo_values[[idx]]),
     geo_type = geo_type

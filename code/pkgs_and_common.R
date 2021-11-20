@@ -18,45 +18,30 @@ library(assertthat)
 
 # User parameters ---------------------------------------------------------
 
-
-
-geo_type <- "hrr"
-ntrain = 21
-ahead = 7:21
-response_data_source = 'jhu-csse'
-response_signal = 'confirmed_7dav_incidence_prop'
-incidence_period = "day"
+geo_type <- "county"
+ntrain = 12
+ahead = 7*(1:3)
+response_data_source = 'covidData'
+response_signal = 'cases' # next try props
+incidence_period = 'epiweek'
 
 qr_lags = c(0, 7, 14)
-qr_forecast_dates <- seq(as.Date('2020-06-09'), as.Date('2021-03-31'), by = "day")
-hotspot_forecast_dates <- seq(as.Date("2020-06-16"), as.Date("2021-03-31"), by = "day")
+qr_forecast_dates <- mondays
 
 train_types <- c("honest", "dishonest", "honest_bootstrapped")
 lp_solver = "gurobi"
 
 # Signals -----------------------------------------------------------------
 
-
-
 signals_df_1 = tribble(
-  ~data_source,         ~signal,
-  response_data_source, response_signal,
-  'fb-survey',          'smoothed_hh_cmnty_cli',
-  'doctor-visits',      'smoothed_adj_cli',
-  'chng',               'smoothed_adj_outpatient_cli',
-  'chng',               'smoothed_adj_outpatient_covid',
-  'google-symptoms',    'sum_anosmia_ageusia_smoothed_search',
-  'google-symptoms',    'sum_anosmia_ageusia_smoothed_search',
+  ~data_source,         ~signal,          ~graph,
+  response_data_source, response_signal,  'id',
+  'covidData',          'cases',          'bord'
 )
 signals_df_2 = tribble(
   ~geo_values,  ~name,              ~zero_impute,
   '*',          'AR3',              NULL,
-  '*',          'AR3FBCLI3',        NULL,
-  '*',          'AR3DVCLI3',        NULL,
-  '*',          'AR3CHCLI3',        NULL,
-  '*',          'AR3CHCOV3',        NULL,
-  '*',          'AR3GSSAA3_Zero',   'anosmia',
-  '*',          'AR3GSSAA3_Subset', NULL,
+  '*',          'AR3bord',          NULL,
 )
 signals_df = bind_cols(signals_df_1, signals_df_2)
 
@@ -123,6 +108,7 @@ offline_get_predictions_single_date <- function(
     download_signal_function = function(
         data_source, 
         signal, 
+        graph,
         start_day, # stub
         end_day, 
         as_of, # stub
@@ -131,7 +117,7 @@ offline_get_predictions_single_date <- function(
       ) {
       signal_fpath = here::here(
         offline_signal_dir,
-        sprintf('%s_%s_%s.RDS', data_source, signal, end_day)
+        sprintf('%s_%s_%s_%s.RDS', data_source, signal, graph, end_day)
       )
       message(sprintf('Reading signal from disk: %s', signal_fpath))
       return(readRDS(signal_fpath))
@@ -149,6 +135,7 @@ offline_get_predictions_single_date <- function(
     download_signal_function(
       data_source = sig$data_source, 
       signal = sig$signal,
+      graph = sig$graph,
       start_day = sig$start_day, # not used for disk read?
       end_day = forecast_date, # seems to be what determines window
       as_of = sig$as_of, 

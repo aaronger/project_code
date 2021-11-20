@@ -41,19 +41,3 @@ for (monday in as.list(mondays[1:3])) {
 		sprintf('%s_%s_%s_%s.RDS', 
 			"covidData", "cases", "id", as.character(monday))))
 }
-
-
-cty_adj <- read_csv(paste0(here(),"/project_data/county_adjacency_fixed.csv"))
-
-
-cty_adj %>% 
-left_join(cd1 %>% select(geo_value, value), 
-	by = c("nghb_fips" = "geo_value")) %>% 
-group_by(fips) %>% 
-summarise(ntw_value = sum(value))
-
-cd2 <- covidData::load_data(
-		as_of = mondays[1], 
-		spatial_resolution = 'county',
-		temporal_resolution = 'weekly',
-		measure = 'cases')
