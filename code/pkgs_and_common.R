@@ -8,12 +8,12 @@ future::plan(multisession)
 
 library(progressr)
 library(purrr)
-library(dplyr)
-library(tibble)
+library(tidyverse)
 library(covidcast)
 library(evalcast)
 library(glmnet)
 library(assertthat)
+library(here)
 
 
 # User parameters ---------------------------------------------------------
@@ -26,6 +26,10 @@ response_signal = 'cases' # next try props
 incidence_period = 'epiweek'
 
 qr_lags = c(0, 7, 14)
+first_monday <- "2020-07-27"
+last_monday <- "2021-08-09"
+mondays <- seq(from = as.Date(first_monday), to = as.Date(last_monday), by = 7)
+
 qr_forecast_dates <- mondays
 
 train_types <- c("honest", "dishonest", "honest_bootstrapped")

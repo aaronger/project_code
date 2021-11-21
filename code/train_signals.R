@@ -1,16 +1,15 @@
 source(here::here("code", "pkgs_and_common.R"))
 source(here::here("code", "quantgen.R"))
 
-
-
 lags = qr_lags
 forecast_dates <- qr_forecast_dates
 tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
 
-
 # To user with future_map, we must evaluate these globals ahead of time
+# This may not be necessary or helpful for working with local data
 make_start_day_ar = function(ahead, ntrain, lags) {
-  offset = eval(1 - max(ahead) - ntrain - max(lags))
+  offset = eval(1 - max(ahead) - 
+    ntrain*ifelse(incidence_period == "epiweek", 7, 1) - max(lags))
   start_day_ar = function(forecast_date) {
     return(as.Date(forecast_date) + offset)
   }

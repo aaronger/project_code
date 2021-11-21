@@ -8,7 +8,7 @@ make_nw_sig_df <- function(
 	sig_val = "value",
 	index = "geo_value"
 ) {
-	G <- diag(1/strength(g)) %*% as_adjacency_matrix(g)
+	G <- Diagonal(length(strength(g)), 1/strength(g)) %*% as_adjacency_matrix(g)
 	sig_df %>% nest(data = -time_value) %>% 
 	mutate(data = map(
 		data,
