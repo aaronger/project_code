@@ -27,7 +27,7 @@ incidence_period = 'epiweek'
 
 qr_lags = c(0, 7, 14)
 first_monday <- "2020-07-27"
-last_monday <- "2021-08-09"
+last_monday <- "2021-10-11"
 mondays <- seq(from = as.Date(first_monday), to = as.Date(last_monday), by = 7)
 
 qr_forecast_dates <- mondays
@@ -89,8 +89,7 @@ offline_get_predictions <- function(
     incidence_period = incidence_period,
     data_source = response_data_source,
     signal = response_data_signal,
-    target_end_date = get_target_period(
-      .data$forecast_date, incidence_period, .data$ahead)$end
+    target_end_date = forecast_date - 2 + 7*ahead
   ) %>%
   relocate(.data$forecaster, .before = .data$forecast_date)
   class(out) <- c("predictions_cards", class(out))

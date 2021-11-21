@@ -122,7 +122,7 @@ quantgen_forecaster = function(
   ...) {
 
   if (n_core > 1) {
-    n_core = min(n_core, parallel::detectCores())
+    n_core = min(n_core, future::availableCores() - 1)
   } else {
     n_core = 1
   }

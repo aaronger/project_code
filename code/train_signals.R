@@ -22,6 +22,7 @@ if (!dir.exists(preds_dir)) dir.create(preds_dir)
 
 train_type <- "honest"
 offline_signal_dir = here::here("data", "offline_signals", sprintf('%s_as_of', train_type))
+st_dir <- here(offline_signal_dir, "county_weekly") 
 debug_dir = here::here("data", "debug_results", "quantreg", sprintf("%s_as_of", train_type))
 if (!dir.exists(debug_dir)) {dir.create(debug_dir, recursive = TRUE)}
 
@@ -31,7 +32,7 @@ for (idx in 1:nrow(signals_df)) {
     # used to build names of RDS files to be loaded for each forecast_date
     data_source = unique(c(response_data_source, signals_df$data_source[idx])),
     signal = unique(c(response_signal, signals_df$signal[idx])),
-    graph = signals_df$graph[idx],
+    graph = unique(c("id", signals_df$graph[idx])),
     start_day = list(start_day_ar),
     geo_values = list(signals_df$geo_values[[idx]]),
     geo_type = geo_type
@@ -40,10 +41,10 @@ for (idx in 1:nrow(signals_df)) {
   t0 = Sys.time()
   with_progress(
     preds <- offline_get_predictions(
-      forecast_dates = forecast_dates[100],
+      forecast_dates = forecast_dates[57],
       forecaster = quantgen_forecaster,
       signals = signals_ar,
-      offline_signal_dir = offline_signal_dir,
+      offline_signal_dir = st_dir,
       forecaster_args = list(
         # forecast_date and df_list(forecast_date) added to this list 
         # by internal function offline_get_predictions_single_date

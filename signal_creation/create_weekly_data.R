@@ -2,7 +2,7 @@
 # Establish forecast dates (Modays) for analysis
 
 first_monday <- "2020-07-27"
-last_monday <- "2021-08-09"
+last_monday <- "2021-10-11"
 mondays <- seq(from = as.Date(first_monday), to = as.Date(last_monday), by = 7)
 
 offline_signal_dir = here(
@@ -15,7 +15,7 @@ offline_signal_dir = here(
 excluded_locs <- c('72','60','66','69','74','78','02')
 # exclude AK for now, until we know how to deal with valdez-cordova
 
-for (monday in as.list(mondays[1:3])) {
+for (monday in as.list(mondays)) {
 	covidData::load_data(
 		as_of = monday, 
 		spatial_resolution = 'county',
@@ -35,7 +35,6 @@ for (monday in as.list(mondays[1:3])) {
 		data_source = "covidData",
 		issue = monday
 	) %>% 
-	as_tibble() %>% 
 	saveRDS(file = file.path(
 		offline_signal_dir,
 		sprintf('%s_%s_%s_%s.RDS', 

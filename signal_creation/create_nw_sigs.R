@@ -9,7 +9,7 @@ make_nw_sig_df <- function(
 	index = "geo_value"
 ) {
 	G <- Diagonal(length(strength(g)), 1/strength(g)) %*% as_adjacency_matrix(g)
-	sig_df %>% nest(data = -time_value) %>% 
+	nw_sig_df <- sig_df %>% nest(data = -time_value) %>% 
 	mutate(data = map(
 		data,
 		function(df) {
@@ -27,6 +27,7 @@ make_nw_sig_df <- function(
 		}
 	)) %>% 
 	unnest(c(data))
+	return(as.covidcast_signal(nw_sig_df, signal = sig_val))
 }
 
 sig_dir <- here("data", "offline_signals", "honest_as_of")
@@ -46,3 +47,4 @@ for (file in list.files(path = st_dir)) {
 		here(st_dir),
 		sub(x = file, "_id_", paste0("_", g_name, "_"))))
 }
+
