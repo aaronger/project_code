@@ -3,22 +3,23 @@ library(dplyr)
 library(evalcast)
 library(covidcast)
 
-actuals = readRDS(here::here("data", "actuals.RDS"))
+actuals = readRDS(here::here("data", "actuals_cases_county_weekly.RDS"))
 
 tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
 
+results = evaluate_predictions(
+  AR3_honest %>% filter(forecast_date == "2021-06-07"),
+  actuals,
+  err_measures = list(ae=absolute_error,
+                      wis=weighted_interval_score),
+  grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
+
 AR_models = c(
       'AR3',
-      'AR3FBCLI3',
-      'AR3DVCLI3',
-      'AR3CHCLI3',
-      'AR3CHCOV3',
-      'AR3GSSAA3_Zero',
-      'AR3GSSAA3_Subset')
-
+      'AR3bord')
 
 # Set train type
-train_types = c('honest', 'dishonest', 'honest_bootstrapped')
+train_types = c('honest', 'dishonest')
 
 for (tt in train_types) {
   # Read baseline

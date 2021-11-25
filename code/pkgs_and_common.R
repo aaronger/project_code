@@ -4,7 +4,7 @@
 
 
 library(furrr)
-future::plan(multisession)
+future::plan(multisession, workers = 4)
 
 library(progressr)
 library(purrr)
@@ -20,12 +20,12 @@ library(here)
 
 geo_type <- "county"
 ntrain = 12
-ahead = 7*(1:3)
+ahead = 7*(1:4)
 response_data_source = 'covidData'
 response_signal = 'cases' # next try props
 incidence_period = 'epiweek'
 
-qr_lags = c(0, 7, 14)
+qr_lags = 7*(0:2)
 first_monday <- "2020-07-27"
 last_monday <- "2021-10-11"
 mondays <- seq(from = as.Date(first_monday), to = as.Date(last_monday), by = 7)
@@ -84,13 +84,15 @@ offline_get_predictions <- function(
   bind_rows()
   names(out$value) = NULL
   out <- out %>%
-  mutate(
-    forecaster = name_of_forecaster,
-    incidence_period = incidence_period,
-    data_source = response_data_source,
-    signal = response_data_signal,
-    target_end_date = forecast_date - 2 + 7*ahead
-  ) %>%
+    mutate(
+      forecaster = name_of_forecaster,
+      data_source = response_data_source,
+      signal = response_data_signal,
+      target_end_date = get_target_period(
+        .data$forecast_date, incidence_period, .data$ahead/7)$end,
+      # needs to be before incidence period turned into var
+      incidence_period = incidence_period
+    ) %>% 
   relocate(.data$forecaster, .before = .data$forecast_date)
   class(out) <- c("predictions_cards", class(out))
   out
@@ -104,28 +106,6 @@ offline_get_predictions_single_date <- function(
   apply_corrections,
   offline_signal_dir) {
 
-  # Addison's spoof of download_signal.
-  if (is.null(offline_signal_dir)) {
-    download_signal_function = evalcast:::download_signal
-  } else {
-    download_signal_function = function(
-        data_source, 
-        signal, 
-        graph,
-        start_day, # stub
-        end_day, 
-        as_of, # stub
-        geo_type, # stub
-        geo_values # stub
-      ) {
-      signal_fpath = here::here(
-        offline_signal_dir,
-        sprintf('%s_%s_%s_%s.RDS', data_source, signal, graph, end_day)
-      )
-      message(sprintf('Reading signal from disk: %s', signal_fpath))
-      return(readRDS(signal_fpath))
-    }
-  }
   forecast_date <- lubridate::ymd(forecast_date)
   # add appropriate start_date or as_of by evaulating start_day_ar functions;
   # signal_listcols evaluates functions in column named "start_day" or "as_of"
@@ -135,15 +115,16 @@ offline_get_predictions_single_date <- function(
     # note pmap operates on a df by applying .f to each row
     sig <- list(...)
     # so that sig is a list of one row's entries
-    download_signal_function(
-      data_source = sig$data_source, 
-      signal = sig$signal,
-      graph = sig$graph,
-      start_day = sig$start_day, # not used for disk read?
-      end_day = forecast_date, # seems to be what determines window
-      as_of = sig$as_of, 
-      geo_type = sig$geo_type,
-      geo_values = sig$geo_values)
+      signal_fpath = here::here(
+        offline_signal_dir,
+        sprintf('%s_%s_%s_%s.RDS', 
+          sig$data_source, 
+          sig$signal, 
+          sig$graph, 
+          sig$as_of)
+      )
+      message(sprintf('Reading signal from disk: %s', signal_fpath))
+      return(readRDS(signal_fpath))
   })
   if (!is.null(apply_corrections)) {
     df_list <- apply_corrections(df_list)

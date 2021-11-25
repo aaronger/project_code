@@ -107,6 +107,7 @@ quantgen_forecaster = function(
   df_list, # list of training data dfs
   forecast_date, # only used to label output file
   signals, # only used organizing lags/transforms - not data
+  incidence_period = c("epiweek", "day"),
   ahead, 
   geo_type,
   n, # number of training obs
@@ -117,7 +118,7 @@ quantgen_forecaster = function(
   resample = NULL,
   zero_impute = NULL,
   verbose = FALSE, 
-  n_core = 1, 
+  n_core = 4, 
   debug = NULL,
   ...) {
 
@@ -126,6 +127,10 @@ quantgen_forecaster = function(
   } else {
     n_core = 1
   }
+  
+  incidence_period <- match.arg(incidence_period)
+  days_in_incidence_period <- ifelse(incidence_period == "epiweek", 7, 1)
+  
   # Check that lags are lags
   if (any(unlist(lags) < 0)) stop("All lags must be nonnegative.")
   # Ensure that lags are applied to both response and signals
@@ -160,6 +165,10 @@ quantgen_forecaster = function(
 
   # Aggregate lagged and unlagged response and signals into wide format
   df_wide = covidcast::aggregate_signals(df_list, dt = dt, format = "wide")
+  
+  if (incidence_period == "epiweek") {
+    df_wide <- df_wide %>% filter(lubridate::wday(time_value) == 7)
+  }
 
   # Separate non-leading values out into feature data frame
   df_features = df_wide %>%
@@ -195,7 +204,7 @@ quantgen_forecaster = function(
   }
 
   if (verbose) message(sprintf('Quantgen forecaster running with %d cores', n_core))
-
+  
   # Loop over ahead values, fit model, make predictions
   results_list = parallel::mclapply(1:length(ahead), function(i) {
   #for (i in 1:length(ahead)) {
@@ -217,14 +226,14 @@ quantgen_forecaster = function(
     x = df_features %>%
     filter(between(
       time_value,
-      train_end_date - n + 1,
+      train_end_date - (n + 1)*days_in_incidence_period,
       train_end_date)) %>%
       select(-c(geo_value, time_value)) %>% as.matrix()
     # repsonses at ahead a on n training dates
     y = df_wide %>%
     filter(between(
       time_value,
-      train_end_date - n + 1,
+      train_end_date - (n + 1)*days_in_incidence_period,
       train_end_date)) %>%
     select(tidyselect::starts_with(sprintf("value+%i:", a))) %>% pull()
 

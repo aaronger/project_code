@@ -9,9 +9,9 @@ tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
 # This may not be necessary or helpful for working with local data
 make_start_day_ar = function(ahead, ntrain, lags) {
   offset = eval(1 - max(ahead) - 
-    ntrain*ifelse(incidence_period == "epiweek", 7, 1) - max(lags))
+    ntrain - max(lags))
   start_day_ar = function(forecast_date) {
-    return(as.Date(forecast_date) + offset)
+    return(as.Date(forecast_date) + offset*ifelse(incidence_period == "epiweek", 7, 1))
   }
   return(start_day_ar)
 }
@@ -39,7 +39,6 @@ for (idx in 1:nrow(signals_df)) {
   )
   message(signals_df$name[idx])
   t0 = Sys.time()
-  with_progress(
     preds <- offline_get_predictions(
       forecast_dates = forecast_dates[57],
       forecaster = quantgen_forecaster,
@@ -49,6 +48,7 @@ for (idx in 1:nrow(signals_df)) {
         # forecast_date and df_list(forecast_date) added to this list 
         # by internal function offline_get_predictions_single_date
         signals = signals_ar,
+        incidence_period = incidence_period,
         ahead = ahead,
         geo_type = geo_type,
         tau = tau,
@@ -64,7 +64,6 @@ for (idx in 1:nrow(signals_df)) {
       name_of_forecaster = signals_df$name[idx],
       incidence_period = incidence_period,
     )
-  )
   t1 = Sys.time()
   print(t1-t0)
 
