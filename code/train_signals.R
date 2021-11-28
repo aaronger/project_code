@@ -37,7 +37,7 @@ for (rows in model_rows) {
   message(name)
   t0 = Sys.time()
     preds <- offline_get_predictions(
-      forecast_dates = forecast_dates[57],
+      forecast_dates = forecast_dates,
       forecaster = quantgen_forecaster,
       signals = signals_ar,
       offline_signal_dir = st_dir,

@@ -199,7 +199,7 @@ quantgen_forecaster = function(
   if (!is.null(resample)) {
     newx_list$newx = resample_matx(newx_list$newx, resample, newx = TRUE)
   }
-  if (!is.null(zero_impute[[1]])) {
+  if (!is.null(zero_impute)) {
     newx_list$newx = zero_impute_matx(newx_list$newx, zero_impute)
   }
 
