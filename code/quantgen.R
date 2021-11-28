@@ -118,7 +118,7 @@ quantgen_forecaster = function(
   resample = NULL,
   zero_impute = NULL,
   verbose = FALSE, 
-  n_core = 4, 
+  n_core = 2, 
   debug = NULL,
   ...) {
 
@@ -199,7 +199,7 @@ quantgen_forecaster = function(
   if (!is.null(resample)) {
     newx_list$newx = resample_matx(newx_list$newx, resample, newx = TRUE)
   }
-  if (!is.null(zero_impute)) {
+  if (!is.null(zero_impute[[1]])) {
     newx_list$newx = zero_impute_matx(newx_list$newx, zero_impute)
   }
 

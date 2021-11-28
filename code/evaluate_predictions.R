@@ -7,8 +7,15 @@ actuals = readRDS(here::here("data", "actuals_cases_county_weekly.RDS"))
 
 tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
 
-results = evaluate_predictions(
-  AR3_honest %>% filter(forecast_date == "2021-06-07"),
+evals_AR3 = evaluate_predictions(
+  p1,
+  actuals,
+  err_measures = list(ae=absolute_error,
+                      wis=weighted_interval_score),
+  grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
+
+evals_AR3_bord = evaluate_predictions(
+  p2,
   actuals,
   err_measures = list(ae=absolute_error,
                       wis=weighted_interval_score),

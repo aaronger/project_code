@@ -4,6 +4,8 @@ library(igraph)
 make_nw_sig_df <- function(
 	sig_df, 
 	g, 
+	gname,
+	sig_name = "signal",
 	time_val = "time_value",
 	sig_val = "value",
 	index = "geo_value"
@@ -23,6 +25,7 @@ make_nw_sig_df <- function(
 				))
 			}
 			nw_df[[sig_val]] <- as.vector(G[locs, locs] %*% df[[sig_val]])
+			nw_df[[sig_name]] <- paste0(nw_df[[sig_name]], gname)
 			return(nw_df)
 		}
 	)) %>% 
@@ -36,15 +39,15 @@ st_dir <- here(sig_dir, "county_weekly")
 graph_df <- read_csv(paste0(here(),"/project_data/county_adjacency_fixed.csv"))
 
 g <- graph_from_data_frame(graph_df %>% select(fips, nghb_fips))
-g_name <- "bord"
+gname <- "Bord"
 
 for (file in list.files(path = st_dir)) {
 	readRDS(file = file.path(
 		here(st_dir), 
 		file)) %>% 
-	make_nw_sig_df(g) %>% 
+	make_nw_sig_df(g = g, gname = gname) %>% 
 	saveRDS(file = file.path(
 		here(st_dir),
-		sub(x = file, "_id_", paste0("_", g_name, "_"))))
+		sub("(Num|Prop)", paste0("\\1", gname), x = file)))
 }
 
