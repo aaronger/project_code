@@ -29,20 +29,28 @@ for (monday in as.list(mondays)) {
 		value = inc, 
 		geo_value = location) %>% 
 	as.covidcast_signal(
-		signal = "cases",
+		signal = "casesNum",
 		geo_type = "county",
 		time_type = "week",
 		data_source = "covidData",
 		issue = monday
-	) %>% 
+	) %T>% 
 	saveRDS(file = file.path(
 		offline_signal_dir,
-		sprintf('%s_%s_%s_%s.RDS', 
-			"covidData", "cases", "id", as.character(monday))))
+		sprintf('%s_%s%s_%s.RDS', 
+			"covidData", "cases", "Num", as.character(monday)))) %>% 
+	left_join(covidHubUtils::hub_locations %>% select(geo_value, population)) %>% 
+	mutate(
+		signal = "casesProp",
+		value = value/population * 100000L) %>% 
+	select(-population) %>% 
+	saveRDS(file = file.path(
+		offline_signal_dir,
+		sprintf('%s_%s%s_%s.RDS', 
+			"covidData", "cases", "Prop", as.character(monday))))
 }
 
-
-# Create case / prop actuals ----------------------------------------------
+# Create num / prop actuals ----------------------------------------------
 
 covidData::load_data(
 	as_of = as.Date("2021-11-15"), 
@@ -56,8 +64,12 @@ rename(
 	target_end_date = date, 
 	actual = inc, 
 	geo_value = location) %>% 
-select(-cum) %>% 
-saveRDS(file = file.path(here("data", "actuals_cases_county_weekly.RDS")))
+select(-cum) %T>% 
+saveRDS(file = file.path(here("data", "actuals_casesNum_county_weekly.RDS"))) %>% 
+left_join(covidHubUtils::hub_locations %>% select(geo_value, population)) %>% 
+mutate(actual = actual/population * 100000L) %>% 
+select(-population) %>% 
+saveRDS(file = file.path(here("data", "actuals_casesProp_county_weekly.RDS"))) 
 
 
 

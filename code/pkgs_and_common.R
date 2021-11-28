@@ -22,7 +22,7 @@ geo_type <- "county"
 ntrain = 12
 ahead = 7*(1:4)
 response_data_source = 'covidData'
-response_signal = 'cases' # next try props
+response_signal = 'casesProp' 
 incidence_period = 'epiweek'
 
 qr_lags = 7*(0:2)
@@ -37,23 +37,31 @@ lp_solver = "gurobi"
 
 # Signals -----------------------------------------------------------------
 
-signals_df_1 = tribble(
-  ~data_source,         ~signal,          ~graph,
-  response_data_source, response_signal,  'id',
-  'covidData',          'cases',          'bord'
-)
-signals_df_2 = tribble(
-  ~geo_values,  ~name,              ~zero_impute,
-  '*',          'AR3',              NULL,
-  '*',          'AR3bord',          NULL,
-)
-signals_df = bind_cols(signals_df_1, signals_df_2)
+graphs <- c("Bord","LEX")
 
+signal_lib <- expand_grid(
+  data_source = response_data_source, 
+  response_signal = response_signal, 
+  graph = c("", graphs))
 
-#--------------------------------------------#
-# "hack" of evalcast, in order to use already
-# downloaded data.
-#--------------------------------------------#
+signals_df <- function(rows, lib = signal_lib, geo_values = "*", .geo_type = geo_type) {
+  lib %>% slice(rows) %>% 
+    mutate(
+      signal = paste0(response_signal, graph),
+      start_day = list(start_day_ar),
+      geo_values = list(geo_values),
+      geo_type = .geo_type,
+      zero_impute = list(NULL)
+    )
+}
+
+model_name <- function(sig_df, root = "AR3") {
+  end <- sig_df %>% group_by(response_signal) %>% 
+    summarise(name = paste0(unique(response_signal), paste(graph, collapse = ""))) %>% 
+    summarise(name = paste(name, collapse = "")) %>% pull()
+  return(paste0(root, end))
+}
+
 offline_get_predictions <- function(
   # data for getting predictions from inner function
   forecast_dates,
@@ -107,8 +115,11 @@ offline_get_predictions_single_date <- function(
   offline_signal_dir) {
 
   forecast_date <- lubridate::ymd(forecast_date)
-  # add appropriate start_date or as_of by evaulating start_day_ar functions;
-  # signal_listcols evaluates functions in column named "start_day" or "as_of"
+  # add appropriate start_date by evaluating start_day_ar functions;
+  # signal_listcols evaluates functions in column named "start_day";
+  # this is not being used yet - date restriction being handled by n_train
+  # argument to quantgen.
+  # So right now all this does is rename forecast_date to as_of
   signals <- evalcast:::signal_listcols(signals, forecast_date)
   # get corresponding list of dfs of signal values
   df_list <- signals %>% pmap(function(...) {
@@ -117,11 +128,10 @@ offline_get_predictions_single_date <- function(
     # so that sig is a list of one row's entries
       signal_fpath = here::here(
         offline_signal_dir,
-        sprintf('%s_%s_%s_%s.RDS', 
+        sprintf('%s_%s_%s.RDS', 
           sig$data_source, 
           sig$signal, 
-          sig$graph, 
-          sig$as_of)
+          sig$as_of) # see note above
       )
       message(sprintf('Reading signal from disk: %s', signal_fpath))
       return(readRDS(signal_fpath))
