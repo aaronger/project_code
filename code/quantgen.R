@@ -206,8 +206,8 @@ quantgen_forecaster = function(
   if (verbose) message(sprintf('Quantgen forecaster running with %d cores', n_core))
   
   # Loop over ahead values, fit model, make predictions
-  results_list = parallel::mclapply(1:length(ahead), function(i) {
-  #for (i in 1:length(ahead)) {
+  results_list = furrr::future_map(1:length(ahead), function(i) {
+  # for (i in 1:length(ahead)) {
     a = ahead[i]
     if (verbose) cat(sprintf("%s%i", ifelse(i == 1, "\nahead = ", ", "), a))
 
@@ -269,7 +269,7 @@ quantgen_forecaster = function(
       value = as.numeric(value),
       ahead = a)
     return(list(predict_df, predict_params))
-  }, mc.cores=n_core)
+  })
   #}
   
 if (verbose) cat("\n")

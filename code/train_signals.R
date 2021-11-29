@@ -29,7 +29,7 @@ if (!dir.exists(debug_dir)) {dir.create(debug_dir, recursive = TRUE)}
 model_rows <- list(
   1,
   c(1,2)
-)[[1]]
+)
 
 for (rows in model_rows) {
   signals_ar = signals_df(rows)

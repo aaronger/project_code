@@ -1,7 +1,7 @@
 
 dat <- bind_rows(
-  evals_AR3,
-  evals_AR3_bord,
+  readRDS(paste0(here(),"/data/evaluations/evals_AR3casesProp")),
+  readRDS(paste0(here(),"/data/evaluations/evals_AR3casesPropBord")),
   .id = "graph"
 ) %>% 
   group_by(forecast_date, ahead, graph) %>% summarise(wis = mean(wis))

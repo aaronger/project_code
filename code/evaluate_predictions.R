@@ -3,23 +3,30 @@ library(dplyr)
 library(evalcast)
 library(covidcast)
 
-actuals = readRDS(here::here("data", "actuals_cases_county_weekly.RDS"))
+actuals = readRDS(here::here("data", "actuals_casesProp_county_weekly.RDS"))
 
 tau = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
+p1 <- readRDS(here::here("data", "predictions", "quantreg",
+                         "AR3casesProp_honest.RDS"))
+p2 <- readRDS(here::here("data", "predictions", "quantreg",
+                         "AR3casesPropBord_honest.RDS"))
 
-evals_AR3 = evaluate_predictions(
+evals_AR3casesProp = evaluate_predictions(
   p1,
   actuals,
   err_measures = list(ae=absolute_error,
                       wis=weighted_interval_score),
   grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
 
-evals_AR3_bord = evaluate_predictions(
+evals_AR3casesPropBord = evaluate_predictions(
   p2,
   actuals,
   err_measures = list(ae=absolute_error,
                       wis=weighted_interval_score),
   grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
+
+saveRDS(evals_AR3casesProp, here::here("data", "evaluations", "evals_AR3casesProp"))
+saveRDS(evals_AR3casesPropBord, here::here("data", "evaluations", "evals_AR3casesPropBord"))
 
 AR_models = c(
       'AR3',
