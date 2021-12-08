@@ -27,8 +27,8 @@ debug_dir = here::here("data", "debug_results", "quantreg", sprintf("%s_as_of", 
 if (!dir.exists(debug_dir)) {dir.create(debug_dir, recursive = TRUE)}
 
 model_rows <- list(
-  1,
-  c(1,2)
+  #1,
+  c(1,3)
 )
 
 for (rows in model_rows) {

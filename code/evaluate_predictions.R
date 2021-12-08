@@ -25,8 +25,17 @@ evals_AR3casesPropBord = evaluate_predictions(
                       wis=weighted_interval_score),
   grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
 
+evals_AR3casesPropLEX = evaluate_predictions(
+  readRDS(here::here("data", "predictions", "quantreg",
+                     "AR3casesPropLEX_honest.RDS")),
+  actuals,
+  err_measures = list(ae=absolute_error,
+                      wis=weighted_interval_score),
+  grp_vars = c("forecaster", "forecast_date", "ahead", "geo_value"))
+
 saveRDS(evals_AR3casesProp, here::here("data", "evaluations", "evals_AR3casesProp"))
 saveRDS(evals_AR3casesPropBord, here::here("data", "evaluations", "evals_AR3casesPropBord"))
+saveRDS(evals_AR3casesPropLEX, here::here("data", "evaluations", "evals_AR3casesPropLEX"))
 
 AR_models = c(
       'AR3',

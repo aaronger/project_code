@@ -17,7 +17,6 @@ make_nw_sig_df <- function(
 		filter(time_value + time_shift > min(G[["time_value"]])) %>% 
 	mutate(data = pmap(.,
 		function(data, time_value, ...) {
-			browser()
 			if ("time_value" %in% names(G)) {
 				G <- G %>% filter(time_value == time_value + time_shift) %>% 
 				pluck("G", 1)
