@@ -23,33 +23,27 @@ make_nw_sig_df <- function(
 				pluck("G", 1)
 			}
 			nw_df <- data
-			locs <- match(data[[index]], rownames(G))
-			stop("need to subset G here")
+			V_sig <- data[[index]]
+			V_G <- rownames(G)
+			V <- intersect(V_sig, V_G)
+			G_full <- matrix(
+				nrow = length(V_sig), ncol = length(V_sig), 
+				dimnames = list(V_sig, V_sig))
+			G_full[V, V] <- G[V, V]
 			# if counties are not in the graph impute or throw error
-			if (any(is.na(locs))) {
+			if (length(V_sig) > length(V)) {
+				V_miss <- setdiff(V_sig, V)
 				if (zero_impute) {
-					incl <- data[[index]][!is.na(locs)]
-					excl <- data[[index]][is.na(locs)]
-					imp_incl_to_excl <- matrix(0, length(excl), length(incl),
-						dimnames = list(excl, incl))
-					imp_excl_to_incl <- matrix(0, length(incl), length(excl),
-						dimnames = list(incl, excl))
-					imp_excl_to_excl <- matrix(0, length(excl), length(excl),
-						dimnames = list(excl, excl))
-					G <- cbind2(
-						rbind2(G, imp_incl_to_excl),
-						rbind2(imp_excl_to_excl, imp_excl_to_excl)
-					)
-					locs <- c(locs, (1 + length(incl)):length(excl))
+					G_full[V_miss,] <- G_full[,V_miss] <- 0
 				} else {
 					stop(paste(
-						data[[index]][which(is.na(locs))],
+						V_miss,
 						"are not included in graph on date",
 						as.character(time_value)
 					))					
 				}
 			}
-			nw_df[[sig_val]] <- as.vector(G[locs, locs] %*% data[[sig_val]])
+			nw_df[[sig_val]] <- as.vector(G_full %*% data[[sig_val]])
 			nw_df[[sig_name]] <- paste0(nw_df[[sig_name]], gname)
 			return(nw_df)
 		}
