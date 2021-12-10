@@ -7,6 +7,7 @@ make_nw_sig_df <- function(
 	time_shift,
 	gname,
 	zero_impute = TRUE, # could later be made a function
+	zero_diagonal = TRUE,
 	sig_name = "signal",
 	time_val = "time_value",
 	sig_val = "value",
@@ -41,6 +42,9 @@ make_nw_sig_df <- function(
 						as.character(time_value)
 					))					
 				}
+			}
+			if (zero_diagonal) {
+				diag(G_full) <- 0
 			}
 			nw_df[[sig_val]] <- as.vector(G_full %*% data[[sig_val]])
 			nw_df[[sig_name]] <- paste0(nw_df[[sig_name]], gname)
