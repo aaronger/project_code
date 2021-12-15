@@ -37,7 +37,7 @@ lp_solver = "gurobi"
 
 # Signals -----------------------------------------------------------------
 
-graphs <- c("Bord","LEX")
+graphs <- c("Bord","LEX","LEXrn")
 
 signal_lib <- expand_grid(
   data_source = response_data_source, 

@@ -31,7 +31,8 @@ model_rows <- list(
   c(1,3)
 )
 
-for (rows in model_rows) {
+#for (rows in model_rows) {
+rows <- c(1,4)
   signals_ar = signals_df(rows)
   name <- model_name(signals_ar)
   message(name)
@@ -65,4 +66,4 @@ for (rows in model_rows) {
   print(t1-t0)
 
   saveRDS(preds, here(preds_dir, sprintf('%s_%s.RDS', name, train_type)))
-}
+#}

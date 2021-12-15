@@ -8,6 +8,7 @@ make_nw_sig_df <- function(
 	gname,
 	zero_impute = TRUE, # could later be made a function
 	zero_diagonal = TRUE,
+	row_normalize = TRUE,
 	sig_name = "signal",
 	time_val = "time_value",
 	sig_val = "value",
@@ -46,6 +47,11 @@ make_nw_sig_df <- function(
 			if (zero_diagonal) {
 				diag(G_full) <- 0
 			}
+			if (row_normalize) {
+				rsums <- rowSums(G_full)
+				rsums[rsums == 0] <- 1
+				G_full <- sweep(G_full, 1, rsums, "/")
+			}
 			nw_df[[sig_val]] <- as.vector(G_full %*% data[[sig_val]])
 			nw_df[[sig_name]] <- paste0(nw_df[[sig_name]], gname)
 			return(nw_df)
@@ -71,7 +77,7 @@ for (file in prop_files) {
 	readRDS(file = file.path(
 		here(st_dir), 
 		file)) %>% 
-	make_nw_sig_df(G = G, gname = gname) %>% 
+	make_nw_sig_df(G = G, gname = gname, row_normalize = FALSE) %>% 
 	saveRDS(file = file.path(
 		here(st_dir),
 		sub("(Num|Prop)", paste0("\\1", gname), x = file)))
@@ -103,10 +109,10 @@ for (file in prop_files) {
 	make_nw_sig_df(
 		G = lex_sats, 
 		time_shift = 0,
-		gname = "LEX") %>% 
+		gname = "LEXrn") %>% 
 	saveRDS(file = file.path(
 		here(st_dir),
-		sub("(Num|Prop)", paste0("\\1", "LEX"), x = file)))
+		sub("(Num|Prop)", paste0("\\1", "LEXrn"), x = file)))
 }
 
 
