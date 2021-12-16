@@ -1,17 +1,22 @@
 
+library(usmap)
+
 g <- graph_from_adjacency_matrix(
   adjmatrix = lex_sats$G[[3]], mode = "directed", diag = FALSE, weighted = TRUE
   )
 
-vs <- embed_laplacian_matrix(g, 50)
+vs <- embed_laplacian_matrix(g_grav, 3)
+vskmns <- kmeans(vs$X,3)
 
-vsks <- kmeans(embed_laplacian_matrix(g, 100)$X, 100)
+vsks <- kmeans(embed_laplacian_matrix(g_grav, 3)$X, 3)
 
 vsks$cluster
 dat <- as_tibble(cbind(vs$X,vsks$cluster))
 ggplot(data=dat,aes(x=V1,y=V2, color=as.factor(V3))) + geom_point()
 
-emb <- 8; k <- 8
+emb <- 30; k <- 30
+g <- g_grav
+E(g)$weight[E(g)$weight<1000] <- 0
 cclus <- counties %>% 
   right_join(tibble(geo_value = V(g)$name, 
                     clus = as.factor(kmeans(embed_adjacency_matrix(g, emb)$X, k)$cluster))) %>% 
@@ -21,7 +26,25 @@ plot_usmap(
   regions = "counties", 
   data = cclus, 
   values = "clus",
-  exclude = "AK", size = .1)
+  exclude = "AK", size = .1) + theme(legend.position = "none")
+
+plot_gvec <- function(g, vec, no_legend = TRUE) {
+  cclus <- counties %>% 
+    right_join(tibble(
+      geo_value = V(g)$name, 
+      value = vec)) %>% 
+    rename(fips=geo_value)
+  
+  p <- plot_usmap(
+    regions = "counties", 
+    data = cclus, 
+    values = "value",
+    exclude = "AK", size = .1)
+  if (no_legend) {
+    p <- p + theme(legend.position = "none")
+  }
+  return(p)
+}
 
 dat <- preds %>% left_join(hub_locations) %>% 
   transmute(
